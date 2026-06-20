@@ -5,7 +5,6 @@
     <title>情绪 ABC 原理 · 做情绪的主人</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@hyperframes/shader-transitions@1.3.0/dist/hyper-shader.min.js"></script>
     <style>
       * { box-sizing: border-box; margin: 0; padding: 0; }
       html, body { width: 100%; height: 100%; overflow: hidden; background: #FFF5E3; }
@@ -840,20 +839,24 @@
     </div>
 
     <script>
-      // Scene timing (seconds, including transition overlap handled by hyper-shader)
-      var tl = window.HyperShader.init({
-        bgColor: "#FFF5E3",
-        accentColor: "#F5A623",
-        scenes: ["s1", "s2", "s3", "s4", "s5", "s6", "s7"],
-        transitions: [
-          { time: 8.5,  duration: 0.8, shader: "sdf-iris" },
-          { time: 17.0, duration: 0.7, shader: "thermal-distortion" },
-          { time: 25.0, duration: 0.7 },
-          { time: 34.0, duration: 0.9, shader: "domain-warp" },
-          { time: 45.0, duration: 0.7, shader: "thermal-distortion" },
-          { time: 57.0, duration: 1.0, shader: "sdf-iris" }
-        ]
-      });
+      // Pure GSAP timeline with CSS crossfade transitions (no shader dependency)
+      var scenes = ["s1", "s2", "s3", "s4", "s5", "s6", "s7"];
+      var sceneTimings = [
+        { start: 0, end: 8.5 },    // s1
+        { start: 8.5, end: 17.0 }, // s2
+        { start: 17.0, end: 25.0 },// s3
+        { start: 25.0, end: 34.0 },// s4
+        { start: 34.0, end: 45.0 },// s5
+        { start: 45.0, end: 57.0 },// s6
+        { start: 57.0, end: 65.0 } // s7
+      ];
+      var transitionDurations = [0.8, 0.7, 0.7, 0.9, 0.7, 1.0];
+
+      // Initialize all scenes to opacity 0, then show s1
+      gsap.set(scenes.map(s => "#" + s), { opacity: 0, visibility: "hidden" });
+      gsap.set("#s1", { opacity: 1, visibility: "visible" });
+
+      var tl = gsap.timeline({ paused: true });
 
       window.__timelines = window.__timelines || {};
       window.__timelines["root"] = tl;
@@ -867,8 +870,12 @@
       tl.fromTo("#s1 .ghost-letter", { opacity: 0, x: 80, y: -60 }, { opacity: 0.08, x: 0, y: 0, duration: 2.0, ease: "sine.inOut" }, 0.5);
       tl.fromTo("#s1 .hairline", { scaleX: 0, transformOrigin: "left" }, { scaleX: 1, duration: 1.2, ease: "sine.inOut" }, 1.0);
       tl.fromTo("#s1 .footer-meta", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.8, ease: "sine.inOut" }, 4.0);
-      // Ambient breath on ABC
       tl.to("#s1 .hero-abc", { scale: 1.03, duration: 3.0, ease: "sine.inOut", yoyo: true, repeat: 1 }, 4.5);
+
+      // ============ TRANSITION 1: s1 → s2 (blur crossfade) ============
+      tl.to("#s1", { opacity: 0, filter: "blur(20px)", duration: transitionDurations[0], ease: "power2.in" }, 8.5);
+      tl.set("#s1", { visibility: "hidden" }, 8.5 + transitionDurations[0]);
+      tl.fromTo("#s2", { opacity: 0, visibility: "visible", filter: "blur(20px)" }, { opacity: 1, filter: "blur(0px)", duration: transitionDurations[0], ease: "power2.out" }, 8.5);
 
       // ============ SCENE 2 Entrances (8.5 - 17.0) ============
       tl.fromTo("#s2 .meta-top", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.7, ease: "sine.inOut" }, 9.0);
@@ -882,6 +889,11 @@
       tl.fromTo("#s2 .ghost-letter", { opacity: 0, x: -60, y: -40 }, { opacity: 0.08, x: 0, y: 0, duration: 2.0, ease: "sine.inOut" }, 9.0);
       tl.fromTo("#s2 .footer-meta", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7, ease: "sine.inOut" }, 14.0);
 
+      // ============ TRANSITION 2: s2 → s3 (blur crossfade) ============
+      tl.to("#s2", { opacity: 0, filter: "blur(18px)", duration: transitionDurations[1], ease: "power2.in" }, 17.0);
+      tl.set("#s2", { visibility: "hidden" }, 17.0 + transitionDurations[1]);
+      tl.fromTo("#s3", { opacity: 0, visibility: "visible", filter: "blur(18px)" }, { opacity: 1, filter: "blur(0px)", duration: transitionDurations[1], ease: "power2.out" }, 17.0);
+
       // ============ SCENE 3 Entrances (17.0 - 25.0) ============
       tl.fromTo("#s3 .meta-top", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.7, ease: "sine.inOut" }, 17.5);
       tl.fromTo("#s3 .headline", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 1.0, ease: "sine.inOut" }, 18.0);
@@ -892,6 +904,11 @@
       tl.fromTo("#s3 .big-card .cn-explain", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.9, ease: "sine.inOut" }, 21.3);
       tl.fromTo("#s3 .ghost-letter", { opacity: 0, x: 60, y: -40 }, { opacity: 0.08, x: 0, y: 0, duration: 2.0, ease: "sine.inOut" }, 17.5);
       tl.fromTo("#s3 .footer-meta", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7, ease: "sine.inOut" }, 22.5);
+
+      // ============ TRANSITION 3: s3 → s4 (blur crossfade) ============
+      tl.to("#s3", { opacity: 0, filter: "blur(18px)", duration: transitionDurations[2], ease: "power2.in" }, 25.0);
+      tl.set("#s3", { visibility: "hidden" }, 25.0 + transitionDurations[2]);
+      tl.fromTo("#s4", { opacity: 0, visibility: "visible", filter: "blur(18px)" }, { opacity: 1, filter: "blur(0px)", duration: transitionDurations[2], ease: "power2.out" }, 25.0);
 
       // ============ SCENE 4 Entrances (25.0 - 34.0) ============
       tl.fromTo("#s4 .meta-top", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.7, ease: "sine.inOut" }, 25.5);
@@ -904,25 +921,32 @@
       tl.fromTo("#s4 .ghost-letter", { opacity: 0, x: -60, y: -40 }, { opacity: 0.08, x: 0, y: 0, duration: 2.0, ease: "sine.inOut" }, 25.5);
       tl.fromTo("#s4 .footer-meta", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7, ease: "sine.inOut" }, 30.5);
 
+      // ============ TRANSITION 4: s4 → s5 (blur crossfade) ============
+      tl.to("#s4", { opacity: 0, filter: "blur(22px)", duration: transitionDurations[3], ease: "power2.in" }, 34.0);
+      tl.set("#s4", { visibility: "hidden" }, 34.0 + transitionDurations[3]);
+      tl.fromTo("#s5", { opacity: 0, visibility: "visible", filter: "blur(22px)" }, { opacity: 1, filter: "blur(0px)", duration: transitionDurations[3], ease: "power2.out" }, 34.0);
+
       // ============ SCENE 5 Entrances (34.0 - 45.0) ============
       tl.fromTo("#s5 .meta-top", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.7, ease: "sine.inOut" }, 34.5);
       tl.fromTo("#s5 .headline", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 1.1, ease: "sine.inOut" }, 35.0);
       tl.fromTo("#s5 .subhead", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 1.0, ease: "sine.inOut" }, 36.0);
       tl.fromTo("#s5 .diagram", { opacity: 0, y: 50, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: 1.2, ease: "expo.out" }, 36.8);
-      // Flow steps staggered
       tl.fromTo("#s5 .flow-step:nth-child(1)", { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.7, ease: "sine.inOut" }, 37.2);
       tl.fromTo("#s5 .flow-arrow:nth-child(2)", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "sine.inOut" }, 37.7);
       tl.fromTo("#s5 .flow-step:nth-child(3)", { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.7, ease: "sine.inOut" }, 38.1);
       tl.fromTo("#s5 .flow-arrow:nth-child(4)", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "sine.inOut" }, 38.6);
       tl.fromTo("#s5 .flow-step:nth-child(5)", { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.7, ease: "sine.inOut" }, 39.0);
-      // Circle pulse
       tl.fromTo("#s5 .flow-letter-circle", { scale: 0.5 }, { scale: 1, duration: 0.8, ease: "back.out(1.6)" }, 37.2);
       tl.to("#s5 .flow-letter-circle", { scale: 1.05, duration: 1.5, ease: "sine.inOut", yoyo: true, repeat: 2 }, 39.0);
-
       tl.fromTo("#s5 .insight-box", { opacity: 0, y: 60, scale: 0.95 }, { opacity: 1, y: 0, scale: 1, duration: 1.2, ease: "expo.out" }, 40.5);
       tl.fromTo("#s5 .insight-label", { opacity: 0, letterSpacing: "0.5em" }, { opacity: 0.9, letterSpacing: "0.25em", duration: 1.2, ease: "sine.inOut" }, 40.8);
       tl.fromTo("#s5 .insight-text", { opacity: 0, y: 25 }, { opacity: 1, y: 0, duration: 1.1, ease: "sine.inOut" }, 41.3);
       tl.fromTo("#s5 .footer-meta", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7, ease: "sine.inOut" }, 42.5);
+
+      // ============ TRANSITION 5: s5 → s6 (blur crossfade) ============
+      tl.to("#s5", { opacity: 0, filter: "blur(18px)", duration: transitionDurations[4], ease: "power2.in" }, 45.0);
+      tl.set("#s5", { visibility: "hidden" }, 45.0 + transitionDurations[4]);
+      tl.fromTo("#s6", { opacity: 0, visibility: "visible", filter: "blur(18px)" }, { opacity: 1, filter: "blur(0px)", duration: transitionDurations[4], ease: "power2.out" }, 45.0);
 
       // ============ SCENE 6 Entrances (45.0 - 57.0) ============
       tl.fromTo("#s6 .meta-top", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.7, ease: "sine.inOut" }, 45.5);
@@ -930,21 +954,23 @@
       tl.fromTo("#s6 .scenario-card", { opacity: 0, y: 40, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: 1.0, ease: "expo.out" }, 47.0);
       tl.fromTo("#s6 .scenario-label", { opacity: 0, letterSpacing: "0.5em" }, { opacity: 1, letterSpacing: "0.2em", duration: 1.0, ease: "sine.inOut" }, 47.3);
       tl.fromTo("#s6 .scenario-text", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.9, ease: "sine.inOut" }, 47.7);
-      // Belief rows - bad then good
       tl.fromTo("#s6 .belief-row:nth-child(1)", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.8, ease: "sine.inOut" }, 48.8);
       tl.fromTo("#s6 .belief-row:nth-child(2)", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.8, ease: "sine.inOut" }, 50.0);
       tl.fromTo("#s6 .footer-meta", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7, ease: "sine.inOut" }, 52.5);
+
+      // ============ TRANSITION 6: s6 → s7 (blur crossfade) ============
+      tl.to("#s6", { opacity: 0, filter: "blur(24px)", duration: transitionDurations[5], ease: "power2.in" }, 57.0);
+      tl.set("#s6", { visibility: "hidden" }, 57.0 + transitionDurations[5]);
+      tl.fromTo("#s7", { opacity: 0, visibility: "visible", filter: "blur(24px)" }, { opacity: 1, filter: "blur(0px)", duration: transitionDurations[5], ease: "power2.out" }, 57.0);
 
       // ============ SCENE 7 Entrances (57.0 - 65.0) ============
       tl.fromTo("#s7 .meta-top", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.8, ease: "sine.inOut" }, 57.8);
       tl.fromTo("#s7 .ornament-line", { scaleX: 0, transformOrigin: "center" }, { scaleX: 1, duration: 1.0, ease: "sine.inOut" }, 58.3);
       tl.fromTo("#s7 .closing-title", { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 1.4, ease: "sine.inOut" }, 58.5);
       tl.fromTo("#s7 .closing-takeaway", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 1.3, ease: "sine.inOut" }, 60.3);
-      tl.fromTo("#s7 .ornament-line + .closing-author, #s7 .closing-author", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 1.0, ease: "sine.inOut" }, 62.0);
+      tl.fromTo("#s7 .closing-author", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 1.0, ease: "sine.inOut" }, 62.0);
       tl.fromTo("#s7 .ghost-letter", { opacity: 0, scale: 1.3, rotation: 5 }, { opacity: 0.06, scale: 1, rotation: 0, duration: 2.5, ease: "sine.inOut" }, 57.5);
       tl.fromTo("#s7 .footer-meta", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.8, ease: "sine.inOut" }, 63.0);
-
-      // Final fade
       tl.to("#s7 .scene-content", { opacity: 0.85, duration: 1.5, ease: "sine.inOut" }, 63.5);
     </script>
   </body>
